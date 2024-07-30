@@ -5,9 +5,8 @@ import demo.Wallet.dto.ResponseModel;
 import demo.Wallet.entity.TransactionHistory;
 import demo.Wallet.entity.User;
 import demo.Wallet.entity.Wallet;
-import demo.Wallet.exception.InsufficientBalanceException;
-import demo.Wallet.exception.UserNotFoundException;
-import demo.Wallet.exception.WalletNotFoundException;
+import demo.Wallet.exception.BadRequestException;
+import demo.Wallet.exception.ErrorCodes;
 import demo.Wallet.repository.TransactionHistoryRepository;
 import demo.Wallet.repository.UserRepository;
 import demo.Wallet.repository.WalletRepository;
@@ -33,9 +32,9 @@ public class WalletService {
     @Transactional
     public ResponseEntity<ResponseModel> loadMoney(String username, String password, Double amount) {
         User user = userRepository.findByUsernameAndPassword(username, password)
-                .orElseThrow(() -> new RuntimeException("Invalid username or password"));
+                .orElseThrow(() -> new BadRequestException("Invalid username or password", ErrorCodes.INVALID_USERNAME_OR_PASSWORD));
         Wallet wallet = walletRepository.findByUser(user)
-                .orElseThrow(() -> new WalletNotFoundException("Wallet not found"));
+                .orElseThrow(() -> new BadRequestException("Wallet not found",ErrorCodes.WALLET_NOT_FOUND));
         wallet.setBalance(wallet.getBalance() + amount);
         walletRepository.save(wallet);
 
@@ -46,18 +45,18 @@ public class WalletService {
     @Transactional
     public ResponseEntity<ResponseModel> makePayment(String payerUsername, String payerPassword, Long payeeUserId, Double amount) {
         User payer = userRepository.findByUsernameAndPassword(payerUsername, payerPassword)
-                .orElseThrow(() -> new UserNotFoundException("Invalid username or password"));
+                .orElseThrow(() -> new BadRequestException("Invalid username or password",ErrorCodes.INVALID_USERNAME_OR_PASSWORD));
         Wallet payerWallet = walletRepository.findByUser(payer)
-                .orElseThrow(() -> new WalletNotFoundException("Payer wallet not found"));
+                .orElseThrow(() -> new BadRequestException("Payer wallet not found",ErrorCodes.WALLET_NOT_FOUND));
 
         if (payerWallet.getBalance() < amount) {
-            throw new InsufficientBalanceException("Insufficient balance");
+            throw new BadRequestException("Insufficient balance", ErrorCodes.INSUFFICIENT_BALANCE);
         }
 
         User payee = userRepository.findById(payeeUserId)
-                .orElseThrow(() -> new UserNotFoundException("Payee not found"));
+                .orElseThrow(() -> new BadRequestException("Payee not found",ErrorCodes.PAYEE_NOT_FOUND));
         Wallet payeeWallet = walletRepository.findByUser(payee)
-                .orElseThrow(() -> new UserNotFoundException("Payee wallet not found"));
+                .orElseThrow(() -> new BadRequestException("Payee wallet not found",ErrorCodes.PAYEE_NOT_FOUND));
 
         // Ödeme yapandan miktarı azalt
         payerWallet.setBalance(payerWallet.getBalance() - amount);
