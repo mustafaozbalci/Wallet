@@ -19,6 +19,7 @@ public class TransactionHistoryController {
     public TransactionHistoryController(TransactionHistoryRepository transactionHistoryRepository) {
         this.transactionHistoryRepository = transactionHistoryRepository;
     }
+
     @GetMapping
     public ResponseEntity<ResponseModel> getAllTransactions() {
         List<TransactionHistory> transactions = transactionHistoryRepository.findAll();

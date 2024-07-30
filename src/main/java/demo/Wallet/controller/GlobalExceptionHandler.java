@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @ControllerAdvice
-public class WalletExceptionHandler {
+public class GlobalExceptionHandler {
 
     //    @ExceptionHandler(WalletNotFoundException.class)
 //    public ResponseEntity<String> walletNotFound(WalletNotFoundException ex) {

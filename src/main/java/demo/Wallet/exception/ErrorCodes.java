@@ -7,11 +7,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum ErrorCodes {
 
-    WALLET_NOT_FOUND(10),
-    USER_NOT_FOUND(11),
-    INVALID_USERNAME_OR_PASSWORD(13),
-    INSUFFICIENT_BALANCE(14),
-    PAYEE_NOT_FOUND(15);
+    WALLET_NOT_FOUND(10), USER_NOT_FOUND(11), INVALID_USERNAME_OR_PASSWORD(13), INSUFFICIENT_BALANCE(14), PAYEE_NOT_FOUND(15);
     private final int code;
 
 }
