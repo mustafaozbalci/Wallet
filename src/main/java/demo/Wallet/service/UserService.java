@@ -16,8 +16,6 @@ public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     private final UserRepository userRepository;
-
-
     private final WalletRepository walletRepository;
 
     public UserService(UserRepository userRepository, WalletRepository walletRepository) {

@@ -29,4 +29,3 @@ public class WalletController {
         return walletService.makePayment(request.getPayerUsername(), request.getPayerPassword(), request.getPayeeUserId(), request.getAmount());
     }
 }
-

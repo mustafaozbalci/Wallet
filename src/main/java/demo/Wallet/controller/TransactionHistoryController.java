@@ -26,5 +26,4 @@ public class TransactionHistoryController {
         ResponseModel responseModel = new ResponseModel(HttpStatus.OK.value(), "Transactions retrieved successfully", transactions);
         return new ResponseEntity<>(responseModel, HttpStatus.OK);
     }
-
 }

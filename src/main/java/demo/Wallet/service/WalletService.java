@@ -1,6 +1,5 @@
 package demo.Wallet.service;
 
-
 import demo.Wallet.dto.ResponseModel;
 import demo.Wallet.entity.TransactionHistory;
 import demo.Wallet.entity.User;
@@ -37,7 +36,9 @@ public class WalletService {
     public ResponseEntity<ResponseModel> loadMoney(String username, String password, Double amount) {
         logger.info("Load money request initiated for user: {}", username);
         User user = userRepository.findByUsernameAndPassword(username, password).orElseThrow(() -> new BadRequestException("Invalid username or password", ErrorCodes.INVALID_USERNAME_OR_PASSWORD));
+
         Wallet wallet = walletRepository.findByUser(user).orElseThrow(() -> new BadRequestException("Wallet not found", ErrorCodes.WALLET_NOT_FOUND));
+
         wallet.setBalance(wallet.getBalance() + amount);
         walletRepository.save(wallet);
         logger.info("Money loaded successfully for user: {}", username);
@@ -50,6 +51,7 @@ public class WalletService {
     public ResponseEntity<ResponseModel> makePayment(String payerUsername, String payerPassword, Long payeeUserId, Double amount) {
         logger.info("Payment request initiated from user: {} to userId: {}", payerUsername, payeeUserId);
         User payer = userRepository.findByUsernameAndPassword(payerUsername, payerPassword).orElseThrow(() -> new BadRequestException("Invalid username or password", ErrorCodes.INVALID_USERNAME_OR_PASSWORD));
+
         Wallet payerWallet = walletRepository.findByUser(payer).orElseThrow(() -> new BadRequestException("Payer wallet not found", ErrorCodes.WALLET_NOT_FOUND));
 
         if (payerWallet.getBalance() < amount) {
@@ -58,6 +60,7 @@ public class WalletService {
         }
 
         User payee = userRepository.findById(payeeUserId).orElseThrow(() -> new BadRequestException("Payee not found", ErrorCodes.PAYEE_NOT_FOUND));
+
         Wallet payeeWallet = walletRepository.findByUser(payee).orElseThrow(() -> new BadRequestException("Payee wallet not found", ErrorCodes.PAYEE_NOT_FOUND));
 
         // Ödeme yapandan miktarı azalt
