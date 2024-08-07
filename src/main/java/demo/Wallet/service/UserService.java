@@ -23,15 +23,20 @@ public class UserService {
         this.walletRepository = walletRepository;
     }
 
-    public ResponseEntity<ResponseModel> registerUser(User user) {
-        logger.info("User registration initiated for username: {}", user.getUsername());
+    public ResponseEntity<ResponseModel> registerUser(String username, String password, String email) {
+        logger.info("User registration initiated for username: {}", username);
+
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(password);
+        user.setEmail(email);
 
         User savedUser = userRepository.save(user);
         Wallet wallet = new Wallet();
         wallet.setUser(savedUser);
-        wallet.setBalance(500.0);
+        wallet.setBalance(0.0);
         walletRepository.save(wallet);
-        logger.info("User registered successfully with username: {}", user.getUsername());
+        logger.info("User registered successfully with username: {}", username);
 
         ResponseModel responseModel = new ResponseModel(HttpStatus.CREATED.value(), "User registered successfully", savedUser);
         return new ResponseEntity<>(responseModel, HttpStatus.CREATED);

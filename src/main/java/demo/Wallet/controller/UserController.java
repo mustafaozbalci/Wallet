@@ -1,15 +1,12 @@
 package demo.Wallet.controller;
 
+import demo.Wallet.dto.RegisterUserRequest;
 import demo.Wallet.dto.ResponseModel;
-import demo.Wallet.entity.User;
 import demo.Wallet.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/users")
@@ -23,9 +20,13 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ResponseModel> registerUser(@RequestBody User user) {
-        logger.info("User registration request received for username: {}", user.getUsername());
-        ResponseEntity<ResponseModel> response = userService.registerUser(user);
+    public ResponseEntity<ResponseModel> registerUser(@RequestHeader("username") String username, @RequestHeader("password") String password, @RequestBody RegisterUserRequest request) {
+        if (request.getEmail() == null) {
+            logger.warn("Email is missing in the request body");
+            return ResponseEntity.badRequest().body(new ResponseModel(400, "Email is missing", null));
+        }
+        logger.info("User registration request received for username: {}", username);
+        ResponseEntity<ResponseModel> response = userService.registerUser(username, password, request.getEmail());
         logger.info("User registration response: {}", response.getBody().getMessage());
         return response;
     }

@@ -48,8 +48,9 @@ public class WalletService {
     }
 
     @Transactional
-    public ResponseEntity<ResponseModel> makePayment(String payerUsername, String payerPassword, Long payeeUserId, Double amount) {
-        logger.info("Payment request initiated from user: {} to userId: {}", payerUsername, payeeUserId);
+    public ResponseEntity<ResponseModel> makePayment(String payerUsername, String payerPassword, Long payeeWalletId, Double amount) {
+        logger.info("Payment request initiated from user: {} to walletId: {}", payerUsername, payeeWalletId);
+
         User payer = userRepository.findByUsernameAndPassword(payerUsername, payerPassword).orElseThrow(() -> new BadRequestException("Invalid username or password", ErrorCodes.INVALID_USERNAME_OR_PASSWORD));
 
         Wallet payerWallet = walletRepository.findByUser(payer).orElseThrow(() -> new BadRequestException("Payer wallet not found", ErrorCodes.WALLET_NOT_FOUND));
@@ -59,19 +60,16 @@ public class WalletService {
             throw new BadRequestException("Insufficient balance", ErrorCodes.INSUFFICIENT_BALANCE);
         }
 
-        User payee = userRepository.findById(payeeUserId).orElseThrow(() -> new BadRequestException("Payee not found", ErrorCodes.PAYEE_NOT_FOUND));
+        Wallet payeeWallet = walletRepository.findById(payeeWalletId).orElseThrow(() -> new BadRequestException("Payee wallet not found", ErrorCodes.PAYEE_NOT_FOUND));
 
-        Wallet payeeWallet = walletRepository.findByUser(payee).orElseThrow(() -> new BadRequestException("Payee wallet not found", ErrorCodes.PAYEE_NOT_FOUND));
-
-        // Ödeme yapandan miktarı azalt
         payerWallet.setBalance(payerWallet.getBalance() - amount);
         walletRepository.save(payerWallet);
 
-        // Alıcının miktarı artır
         payeeWallet.setBalance(payeeWallet.getBalance() + amount);
         walletRepository.save(payeeWallet);
 
-        logger.info("Payment of {} from user: {} to userId: {} was successful", amount, payerUsername, payeeUserId);
+        logger.info("Payment of {} from user: {} to walletId: {} was successful", amount, payerUsername, payeeWalletId);
+
         TransactionHistory transactionHistory = new TransactionHistory();
         transactionHistory.setWalletIdFrom(payerWallet.getId());
         transactionHistory.setWalletIdTo(payeeWallet.getId());

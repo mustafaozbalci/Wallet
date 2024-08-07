@@ -1,6 +1,6 @@
 package demo.Wallet.config;
 
-import demo.Wallet.logging.Slf4jMDCFilter;
+import demo.Wallet.filter.Slf4jMDCFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
