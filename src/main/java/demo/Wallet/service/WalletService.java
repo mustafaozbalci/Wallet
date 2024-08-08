@@ -1,41 +1,38 @@
 package demo.Wallet.service;
 
 import demo.Wallet.dto.ResponseModel;
-import demo.Wallet.entity.TransactionHistory;
 import demo.Wallet.entity.User;
 import demo.Wallet.entity.Wallet;
 import demo.Wallet.exception.BadRequestException;
 import demo.Wallet.exception.ErrorCodes;
-import demo.Wallet.repository.TransactionHistoryRepository;
-import demo.Wallet.repository.UserRepository;
 import demo.Wallet.repository.WalletRepository;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-
 @Service
+@RequiredArgsConstructor
 public class WalletService {
     private static final Logger logger = LoggerFactory.getLogger(WalletService.class);
 
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final WalletRepository walletRepository;
-    private final TransactionHistoryRepository transactionHistoryRepository;
+    private final TransactionHistoryService transactionHistoryService;
 
-    public WalletService(UserRepository userRepository, WalletRepository walletRepository, TransactionHistoryRepository transactionHistoryRepository) {
-        this.userRepository = userRepository;
-        this.walletRepository = walletRepository;
-        this.transactionHistoryRepository = transactionHistoryRepository;
+    public void createWallet(User user) {
+        logger.info("Creating wallet for user: {}", user.getUsername());
+        Wallet wallet = new Wallet(user, 0.0);
+        walletRepository.save(wallet);
     }
 
     @Transactional
-    public ResponseEntity<ResponseModel> loadMoney(String username, String password, Double amount) {
+    public ResponseEntity<ResponseModel<Wallet>> loadMoney(String username, String password, Double amount) {
         logger.info("Load money request initiated for user: {}", username);
-        User user = userRepository.findByUsernameAndPassword(username, password).orElseThrow(() -> new BadRequestException("Invalid username or password", ErrorCodes.INVALID_USERNAME_OR_PASSWORD));
+        User user = userService.validateUser(username, password);
 
         Wallet wallet = walletRepository.findByUser(user).orElseThrow(() -> new BadRequestException("Wallet not found", ErrorCodes.WALLET_NOT_FOUND));
 
@@ -43,15 +40,15 @@ public class WalletService {
         walletRepository.save(wallet);
         logger.info("Money loaded successfully for user: {}", username);
 
-        ResponseModel responseModel = new ResponseModel(HttpStatus.OK.value(), "Money loaded successfully", wallet);
+        ResponseModel<Wallet> responseModel = new ResponseModel<>(HttpStatus.OK.value(), "Money loaded successfully", wallet);
         return new ResponseEntity<>(responseModel, HttpStatus.OK);
     }
 
     @Transactional
-    public ResponseEntity<ResponseModel> makePayment(String payerUsername, String payerPassword, Long payeeWalletId, Double amount) {
+    public ResponseEntity<ResponseModel<Void>> makePayment(String payerUsername, String payerPassword, Long payeeWalletId, Double amount) {
         logger.info("Payment request initiated from user: {} to walletId: {}", payerUsername, payeeWalletId);
 
-        User payer = userRepository.findByUsernameAndPassword(payerUsername, payerPassword).orElseThrow(() -> new BadRequestException("Invalid username or password", ErrorCodes.INVALID_USERNAME_OR_PASSWORD));
+        User payer = userService.validateUser(payerUsername, payerPassword);
 
         Wallet payerWallet = walletRepository.findByUser(payer).orElseThrow(() -> new BadRequestException("Payer wallet not found", ErrorCodes.WALLET_NOT_FOUND));
 
@@ -70,14 +67,9 @@ public class WalletService {
 
         logger.info("Payment of {} from user: {} to walletId: {} was successful", amount, payerUsername, payeeWalletId);
 
-        TransactionHistory transactionHistory = new TransactionHistory();
-        transactionHistory.setWalletIdFrom(payerWallet.getId());
-        transactionHistory.setWalletIdTo(payeeWallet.getId());
-        transactionHistory.setAmount(amount);
-        transactionHistory.setTransactionTime(LocalDateTime.now());
-        transactionHistoryRepository.save(transactionHistory);
+        transactionHistoryService.createTransaction(payerWallet.getId(), payeeWallet.getId(), amount);
 
-        ResponseModel responseModel = new ResponseModel(HttpStatus.OK.value(), "Payment made successfully", null);
+        ResponseModel<Void> responseModel = new ResponseModel<>(HttpStatus.OK.value(), "Payment made successfully", null);
         return new ResponseEntity<>(responseModel, HttpStatus.OK);
     }
 }

@@ -1,4 +1,4 @@
-package demo.Wallet.controller;
+package demo.Wallet.config;
 
 import demo.Wallet.dto.ResponseModel;
 import demo.Wallet.exception.BadRequestException;

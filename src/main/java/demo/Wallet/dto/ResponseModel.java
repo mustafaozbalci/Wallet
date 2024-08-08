@@ -5,8 +5,8 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class ResponseModel {
+public class ResponseModel<T> {
     private final Integer status;
     private final String message;
-    private final transient Object data;
+    private final T data;
 }

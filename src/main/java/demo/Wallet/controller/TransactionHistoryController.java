@@ -25,10 +25,10 @@ public class TransactionHistoryController {
     }
 
     @GetMapping
-    public ResponseEntity<ResponseModel> getAllTransactions() {
+    public ResponseEntity<ResponseModel<List<TransactionHistory>>> getAllTransactions() {
         logger.info("Get all transactions request received");
         List<TransactionHistory> transactions = transactionHistoryRepository.findAll();
-        ResponseModel responseModel = new ResponseModel(HttpStatus.OK.value(), "Transactions retrieved successfully", transactions);
+        ResponseModel<List<TransactionHistory>> responseModel = new ResponseModel<>(HttpStatus.OK.value(), "Transactions retrieved successfully", transactions);
         logger.info("Get all transactions response: {}", responseModel.getMessage());
         return new ResponseEntity<>(responseModel, HttpStatus.OK);
     }
