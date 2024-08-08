@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
@@ -26,16 +28,28 @@ public class UserService {
     public ResponseEntity<ResponseModel> registerUser(String username, String password, String email) {
         logger.info("User registration initiated for username: {}", username);
 
+        // Check if username already exists
+        Optional<User> existingUser = userRepository.findByUsername(username);
+        if (existingUser.isPresent()) {
+            logger.warn("User registration failed. Username already exists: {}", username);
+            ResponseModel responseModel = new ResponseModel(HttpStatus.BAD_REQUEST.value(), "Username already exists", null);
+            return new ResponseEntity<>(responseModel, HttpStatus.BAD_REQUEST);
+        }
+
+        // Create new user
         User user = new User();
         user.setUsername(username);
         user.setPassword(password);
         user.setEmail(email);
 
         User savedUser = userRepository.save(user);
+
+        // Create wallet for the new user
         Wallet wallet = new Wallet();
         wallet.setUser(savedUser);
         wallet.setBalance(0.0);
         walletRepository.save(wallet);
+
         logger.info("User registered successfully with username: {}", username);
 
         ResponseModel responseModel = new ResponseModel(HttpStatus.CREATED.value(), "User registered successfully", savedUser);
